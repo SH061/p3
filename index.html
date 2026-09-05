@@ -146,6 +146,9 @@
     white-space:pre-wrap;
   }
   .qtext{ font-size:17px; font-weight:700; line-height:1.6; margin:6px 0 4px; white-space:pre-wrap; }
+  /* 학생용 "공통 조건(보기 설명)" 안내 문구 — 교사용 .reflect-guide와 같은 톤(무채색/보조색,
+     본문 .qtext보다 작은 폰트)으로, q.guideText가 있을 때만 표시된다(renderQuestion 참고). */
+  .q-guide{ font-size:15px; color:var(--muted); line-height:1.6; margin:6px 0 2px; white-space:pre-wrap; }
   .qimg-wrap{ margin:12px 0; text-align:center; }
   .qimg-wrap img{ max-width:100%; border-radius:10px; border:1px solid var(--line); background:#fff; }
   .qimg-wrap.small img{ max-width:100%; }
@@ -297,8 +300,14 @@
   .tq-note-blocks{ display:flex; flex-direction:column; gap:18px; }
   .tq-note-block{
     background:var(--panel-2); border:1px solid var(--line); border-radius:12px;
-    padding:16px 20px; font-size:23px; line-height:1.75; font-weight:600;
+    padding:16px 20px; font-size:46px; line-height:1.75; font-weight:600;
+    word-break:keep-all; overflow-wrap:break-word;
   }
+  /* 화학 반응식이 (가)(나)(다)(라) 형태로 나열된 note("스스로 확인하기" 문항)는
+     교실 뒷자리에서도 읽히도록 다른 확인문제 note 블록보다 더 크게(2.5배),
+     블록 사이 간격도 더 넉넉하게(1.3배) 잡는다. */
+  .tq-note-blocks.tq-note-blocks-chem{ gap:23px; }
+  .tq-note-blocks-chem .tq-note-block{ font-size:58px; }
   .tq-split-right{
     background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px 26px;
     display:flex; flex-direction:column;
@@ -381,6 +390,9 @@
   /* 나중에 성찰 질문에 안내 문구가 추가될 때를 대비한 여분 문단 — 지금은 데이터에
      없으면 비워둔 채 hidden 처리된다 */
   .reflect-guide{ font-size:17px; color:var(--muted); line-height:1.65; margin:0 0 10px; }
+  /* 이제 성찰 질문뿐 아니라 "공통 조건" 안내로 매 문항마다 쓰이므로, 교실에서 읽을 수
+     있도록 교사 화면(.teacher-panel) 안에서만 폰트를 키운다(다른 화면에는 영향 없음) */
+  .teacher-panel .reflect-guide{ font-size:25px; }
 
   .reveal-gate{ text-align:center; margin:10px 0; }
   .reveal-gate .btn.primary{ font-size:22px; font-weight:800; padding:20px 36px; }
@@ -592,6 +604,7 @@
         </div>
         <span class="qnum" id="q-num">1 / 20</span>
       </div>
+      <div class="q-guide hidden" id="q-guide"></div>
       <div class="qtext" id="q-text"></div>
       <div class="qnote hidden" id="q-note"></div>
       <div class="qimg-wrap hidden" id="q-image-wrap"><img id="q-image" src="" alt=""></div>
@@ -910,179 +923,184 @@ const CLASS_COUNT = 10;
    문항 데이터
 ============================================================ */
 const QUESTIONS = [
-  /* ── 산화와 환원 (학습지 22~23쪽) ─────────────────────────── */
-  { id:"s1_self1", type:"choice", tag:"스스로 확인하기", page:22,
-    text:"〈산화와 환원〉 뷰테인이 연소할 때, 뷰테인은 이산화 탄소로 ( 산화된다 / 환원된다 ).",
-    options:["산화된다","환원된다"], correctAnswer:"산화된다" },
+  /* ══════════ 산화와 환원 (학습지 22~23쪽) ══════════ */
 
-  { id:"s1_self2", type:"choice", tag:"스스로 확인하기", page:22,
-    text:"〈산화와 환원〉 산화·환원 반응은 산소의 이동 또는 전자의 이동으로 설명할 수 있다.",
-    options:["O","X"], correctAnswer:"O" },
+  /* ── 스스로 확인하기 (22쪽) ── */
+  { id:"s1_self1", page:22, type:"choice", options:["산화된다","환원된다"], correctAnswer:"산화된다", tag:"스스로 확인하기",
+    text:"뷰테인이 연소할 때, 뷰테인은 이산화 탄소로 ( 산화된다 / 환원된다 )." },
+  { id:"s1_self2", page:22, type:"choice", options:["O","X"], correctAnswer:"O", tag:"스스로 확인하기",
+    text:"산화·환원 반응은 산소의 이동 또는 전자의 이동으로 설명할 수 있다." },
 
-  { id:"s1_check1a", type:"blank", tag:"깨알 개념 체크 문제", page:22,
-    text:"〈산화와 환원〉 아래 반응식에서 ㉠에 들어갈 말을 쓰시오. (2H₂ + O₂ → 2H₂O)",
-    note:"㉠에 '산화' 또는 '환원' 중 알맞은 말을 쓰세요.",
-    image:"images/q-redox-check-eq1.png", correctAnswer:"산화" },
-  { id:"s1_check1b", type:"blank", tag:"깨알 개념 체크 문제", page:22,
-    text:"〈산화와 환원〉 아래 반응식에서 ㉡에 들어갈 말을 쓰시오. (2H₂ + O₂ → 2H₂O)",
-    note:"㉡에 '산화' 또는 '환원' 중 알맞은 말을 쓰세요.",
-    image:"images/q-redox-check-eq1.png", correctAnswer:"환원" },
-  { id:"s1_check2a", type:"blank", tag:"깨알 개념 체크 문제", page:22,
-    text:"〈산화와 환원〉 아래 반응식에서 ㉠에 들어갈 말을 쓰시오. (CH₄ + 2O₂ → CO₂ + 2H₂O)",
-    note:"㉠에 '산화' 또는 '환원' 중 알맞은 말을 쓰세요.",
-    image:"images/q-redox-check-eq2.png", correctAnswer:"산화" },
-  { id:"s1_check2b", type:"blank", tag:"깨알 개념 체크 문제", page:22,
-    text:"〈산화와 환원〉 아래 반응식에서 ㉡에 들어갈 말을 쓰시오. (CH₄ + 2O₂ → CO₂ + 2H₂O)",
-    note:"㉡에 '산화' 또는 '환원' 중 알맞은 말을 쓰세요.",
-    image:"images/q-redox-check-eq2.png", correctAnswer:"환원" },
+  /* ── 깨알 개념 체크 문제 (22쪽) — 화학 반응식의 ㉠·㉡ 채우기 ── */
+  { id:"s1_check1a", page:22, type:"blank", correctAnswer:"산화", tag:"깨알 개념 체크 문제",
+    guideText:"아래 화학 반응식에서 ㉠, ㉡에 '산화' 또는 '환원' 중 알맞은 말을 쓰시오.",
+    text:"㉠에 들어갈 말을 쓰시오.",
+    note:"2H₂ + O₂ → 2H₂O",
+    image:"images/q-redox-check-eq1.png" },
+  { id:"s1_check1b", page:22, type:"blank", correctAnswer:"환원", tag:"깨알 개념 체크 문제",
+    guideText:"아래 화학 반응식에서 ㉠, ㉡에 '산화' 또는 '환원' 중 알맞은 말을 쓰시오.",
+    text:"㉡에 들어갈 말을 쓰시오.",
+    note:"2H₂ + O₂ → 2H₂O",
+    image:"images/q-redox-check-eq1.png" },
+  { id:"s1_check2a", page:22, type:"blank", correctAnswer:"산화", tag:"깨알 개념 체크 문제",
+    guideText:"아래 화학 반응식에서 ㉠, ㉡에 '산화' 또는 '환원' 중 알맞은 말을 쓰시오.",
+    text:"㉠에 들어갈 말을 쓰시오.",
+    note:"CH₄ + 2O₂ → CO₂ + 2H₂O",
+    image:"images/q-redox-check-eq2.png" },
+  { id:"s1_check2b", page:22, type:"blank", correctAnswer:"환원", tag:"깨알 개념 체크 문제",
+    guideText:"아래 화학 반응식에서 ㉠, ㉡에 '산화' 또는 '환원' 중 알맞은 말을 쓰시오.",
+    text:"㉡에 들어갈 말을 쓰시오.",
+    note:"CH₄ + 2O₂ → CO₂ + 2H₂O",
+    image:"images/q-redox-check-eq2.png" },
 
-  { id:"s1_confirm1", type:"choice", tag:"확인문제 1", page:22,
-    text:"〈산화와 환원〉 물질이 산소를 얻거나 전자를 ( ㉠ ) 반응을 산화라고 한다. 또 물질이 산소를 잃거나 전자를 얻는 반응을 ( ㉡ )(이)라고 한다. ㉠, ㉡에 들어갈 알맞은 말을 순서대로 옳게 짝 지은 것은?",
-    note:"① 얻는, 환원   ② 얻는, 산화   ③ 잃는, 환원   ④ 잃는, 산화   ⑤ 잃는, 산화·환원",
-    options:["①","②","③","④","⑤"], correctAnswer:"③" },
-
-  { id:"s1_confirm2", type:"choice", tag:"확인문제 2", page:22,
-    text:"〈산화와 환원〉 우리 주변에서 일어나는 산화·환원 반응을 〈보기〉에서 있는 대로 고른 것은?",
-    note:"〈보기〉\nㄱ. 양초가 연소한다.\nㄴ. 생명체에서 세포호흡이 일어난다.\nㄷ. 껍질을 벗겨 놓은 사과가 갈색으로 변한다.\n\n① ㄱ   ② ㄴ   ③ ㄱ, ㄴ   ④ ㄴ, ㄷ   ⑤ ㄱ, ㄴ, ㄷ",
-    options:["①","②","③","④","⑤"], correctAnswer:"⑤" },
-
-  { id:"s1_confirm3", type:"short", tag:"확인문제 3", page:22,
-    text:"〈산화와 환원〉 다음은 철의 제련 반응 (가)와 철이 부식되는 반응 (나)이다. 각 반응에서 산화된 물질과 환원된 물질을 쓰시오.",
-    note:"(가) Fe₂O₃ + 3CO → 2Fe + 3CO₂\n(나) 4Fe + 3O₂ → 2Fe₂O₃",
+  /* ── 확인문제 (22쪽) ── */
+  { id:"s1_confirm1", page:22, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"③", tag:"확인문제",
+    text:"물질이 산소를 얻거나 전자를 ( ㉠ ) 반응을 산화라고 한다. 또 물질이 산소를 잃거나 전자를 얻는 반응을 ( ㉡ )(이)라고 한다. ㉠, ㉡에 들어갈 알맞은 말을 순서대로 옳게 짝 지은 것은?",
+    note:"① 얻는, 환원\n② 얻는, 산화\n③ 잃는, 환원\n④ 잃는, 산화\n⑤ 잃는, 산화·환원" },
+  { id:"s1_confirm2", page:22, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"⑤", tag:"확인문제",
+    text:"우리 주변에서 일어나는 산화·환원 반응을 <보기>에서 있는 대로 고른 것은?",
+    note:"<보기>\nㄱ. 양초가 연소한다.\nㄴ. 생명체에서 세포호흡이 일어난다.\nㄷ. 껍질을 벗겨 놓은 사과가 갈색으로 변한다.\n\n① ㄱ   ② ㄴ   ③ ㄱ, ㄴ   ④ ㄴ, ㄷ   ⑤ ㄱ, ㄴ, ㄷ" },
+  { id:"s1_confirm3", page:22, type:"short", tag:"확인문제",
+    text:"다음 (가), (나) 반응에서 각각 산화된 물질과 환원된 물질을 쓰시오.",
+    note:"(가) 철의 제련: Fe₂O₃ + 3CO → 2Fe + 3CO₂\n(나) 철의 부식: 4Fe + 3O₂ → 2Fe₂O₃",
     sampleAnswer:"(가) 산화된 물질: CO, 환원된 물질: Fe₂O₃    /    (나) 산화된 물질: Fe, 환원된 물질: O₂" },
 
-  { id:"s1_past1", type:"choice", tag:"기출문제", page:23,
-    text:"〈산화와 환원〉 철(Fe)이나 코크스(C)를 이용하여 수증기(H₂O)로부터 수소(H₂)를 대량으로 얻는 과정 (가)와 (나)에 대한 설명으로 옳은 것만을 [보기]에서 있는 대로 고른 것은? (자료·보기·선택지는 아래 그림 참고)",
-    image:"images/q-redox-past-1.png", imageSize:"small",
-    options:["①","②","③","④","⑤"], correctAnswer:"⑤" },
-  { id:"s1_past2", type:"choice", tag:"기출문제", page:23,
-    text:"〈산화와 환원〉 다음은 광합성의 화학 반응식이다. 광합성에 대한 설명으로 옳은 것만을 [보기]에서 있는 대로 고른 것은? (자료·보기·선택지는 아래 그림 참고)",
-    image:"images/q-redox-past-2.png", imageSize:"small",
-    options:["①","②","③","④","⑤"], correctAnswer:"③" },
-  { id:"s1_past3", type:"choice", tag:"기출문제", page:23,
-    text:"〈산화와 환원〉 다음은 지구와 생명의 역사에 영향을 준 3가지 반응이다. 이에 대한 설명으로 옳은 것만을 [보기]에서 있는 대로 고른 것은? (자료·보기·선택지는 아래 그림 참고)",
-    image:"images/q-redox-past-3.png", imageSize:"small",
-    options:["①","②","③","④","⑤"], correctAnswer:"③" },
-  { id:"s1_past4", type:"choice", tag:"기출문제", page:23,
-    text:"〈산화와 환원〉 [2023 실시 11월 학력평가 통합과학(고1) 10번] 다음은 철의 제련 과정에서 일어나는 반응 (가)와 (나)에 대한 자료이다. 이에 대한 설명으로 옳은 것만을 [보기]에서 있는 대로 고른 것은? (자료·보기·선택지는 아래 그림 참고)",
-    image:"images/q-redox-past-4-2023.png", imageSize:"small",
-    options:["①","②","③","④","⑤"], correctAnswer:"⑤" },
+  /* ── 기출 문제 (23쪽) — 문제·보기·선택지는 이미지 안에 있음 ── */
+  { id:"s1_past1", page:23, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"⑤", tag:"기출 문제",
+    text:"학력평가 기출",
+    image:"images/q-redox-past-1.png", imageSize:"small" },
+  { id:"s1_past2", page:23, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"③", tag:"기출 문제",
+    text:"학력평가 기출",
+    image:"images/q-redox-past-2.png", imageSize:"small" },
+  { id:"s1_past3", page:23, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"③", tag:"기출 문제",
+    text:"학력평가 기출",
+    image:"images/q-redox-past-3.png", imageSize:"small" },
+  { id:"s1_past4", page:23, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"⑤", tag:"기출 문제",
+    text:"[2023 실시 11월 학력평가 통합과학(고1) 10번]",
+    image:"images/q-redox-past-4-2023.png", imageSize:"small" },
 
-  /* ── 산과 염기 (학습지 26~27쪽) ─────────────────────────── */
-  { id:"s2_self1", type:"choice", tag:"스스로 확인하기", page:26,
-    text:"〈산과 염기〉 식초는 페놀프탈레인 용액을 붉은색으로 변하게 한다.",
-    options:["O","X"], correctAnswer:"X" },
-  { id:"s2_self2", type:"choice", tag:"스스로 확인하기", page:26,
-    text:"〈산과 염기〉 산과 염기의 수용액은 모두 전류가 흐르는 성질이 ( 있다 / 없다 ).",
-    options:["있다","없다"], correctAnswer:"있다" },
+  /* ══════════ 산과 염기 (학습지 26~27쪽) ══════════ */
 
-  { id:"s2_c1_1", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 묽은 염산·식초·레몬즙에 대한 설명이다. — 전기 전도성 측정기를 담그면 전류가 흐른다.",
-    note:"묽은 염산, 식초, 레몬즙은 모두 푸른색 리트머스 종이를 붉게 변화시킨다. 옳으면 O, 옳지 않으면 X.",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c1_2", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 묽은 염산·식초·레몬즙에 대한 설명이다. — 마그네슘 조각을 넣으면 이산화 탄소 기체가 발생한다.",
-    note:"묽은 염산, 식초, 레몬즙은 모두 푸른색 리트머스 종이를 붉게 변화시킨다. 옳으면 O, 옳지 않으면 X.",
-    options:["O","X"], correctAnswer:"X" },
-  { id:"s2_c1_3", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 묽은 염산·식초·레몬즙에 대한 설명이다. — 탄산 칼슘과 반응시키면 수소 기체가 발생한다.",
-    note:"묽은 염산, 식초, 레몬즙은 모두 푸른색 리트머스 종이를 붉게 변화시킨다. 옳으면 O, 옳지 않으면 X.",
-    options:["O","X"], correctAnswer:"X" },
-  { id:"s2_c1_4", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 묽은 염산·식초·레몬즙에 대한 설명이다. — BTB 용액을 떨어뜨리면 용액의 색이 노란색으로 변한다.",
-    note:"묽은 염산, 식초, 레몬즙은 모두 푸른색 리트머스 종이를 붉게 변화시킨다. 옳으면 O, 옳지 않으면 X.",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c1_5", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 묽은 염산·식초·레몬즙에 대한 설명이다. — 두부(단백질)를 녹이는 성질이 있다.",
-    note:"묽은 염산, 식초, 레몬즙은 모두 푸른색 리트머스 종이를 붉게 변화시킨다. 옳으면 O, 옳지 않으면 X.",
-    options:["O","X"], correctAnswer:"X" },
+  /* ── 스스로 확인하기 (26쪽) ── */
+  { id:"s2_self1", page:26, type:"choice", options:["O","X"], correctAnswer:"X", tag:"스스로 확인하기",
+    text:"식초는 페놀프탈레인 용액을 붉은색으로 변하게 한다." },
+  { id:"s2_self2", page:26, type:"choice", options:["있다","없다"], correctAnswer:"있다", tag:"스스로 확인하기",
+    text:"산과 염기의 수용액은 모두 전류가 흐르는 성질이 ( 있다 / 없다 )." },
 
-  { id:"s2_c2_1", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 수산화 나트륨·암모니아·수산화 마그네슘 수용액의 공통 설명이다. — 전기 전도성이 있다.",
-    note:"세 수용액에 공통으로 해당하는 설명이면 O, 아니면 X.",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c2_2", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 수산화 나트륨·암모니아·수산화 마그네슘 수용액의 공통 설명이다. — 페놀프탈레인 용액을 떨어뜨리면 붉은색으로 변한다.",
-    note:"세 수용액에 공통으로 해당하는 설명이면 O, 아니면 X.",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c2_3", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 수산화 나트륨·암모니아·수산화 마그네슘 수용액의 공통 설명이다. — 금속 또는 달걀 껍데기와 반응하면 기체가 발생한다.",
-    note:"세 수용액에 공통으로 해당하는 설명이면 O, 아니면 X.",
-    options:["O","X"], correctAnswer:"X" },
-  { id:"s2_c2_4", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 수산화 나트륨·암모니아·수산화 마그네슘 수용액의 공통 설명이다. — 같은 온도에서 탄산음료보다 pH가 더 크다.",
-    note:"세 수용액에 공통으로 해당하는 설명이면 O, 아니면 X.",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c2_5", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 수산화 나트륨·암모니아·수산화 마그네슘 수용액의 공통 설명이다. — 주변의 물질 중 공통된 성질을 띠는 것으로 비눗물, 하수구 세정제 등이 있다.",
-    note:"세 수용액에 공통으로 해당하는 설명이면 O, 아니면 X.",
-    options:["O","X"], correctAnswer:"O" },
+  /* ── 깨알 개념 체크 문제 1 (26쪽) — 묽은 염산·식초·레몬즙 공통 ── */
+  { id:"s2_c1_1", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"묽은 염산, 식초, 레몬즙에 대한 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 물질에 리트머스 종이를 대었을 때의 색 변화\n· 묽은 염산: 푸른색 → 붉은색\n· 식초: 푸른색 → 붉은색\n· 레몬즙: 푸른색 → 붉은색",
+    text:"전기 전도성 측정기를 담그면 전류가 흐른다." },
+  { id:"s2_c1_2", page:26, type:"choice", options:["O","X"], correctAnswer:"X", tag:"깨알 개념 체크 문제",
+    guideText:"묽은 염산, 식초, 레몬즙에 대한 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 물질에 리트머스 종이를 대었을 때의 색 변화\n· 묽은 염산: 푸른색 → 붉은색\n· 식초: 푸른색 → 붉은색\n· 레몬즙: 푸른색 → 붉은색",
+    text:"마그네슘 조각을 넣으면 이산화 탄소 기체가 발생한다." },
+  { id:"s2_c1_3", page:26, type:"choice", options:["O","X"], correctAnswer:"X", tag:"깨알 개념 체크 문제",
+    guideText:"묽은 염산, 식초, 레몬즙에 대한 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 물질에 리트머스 종이를 대었을 때의 색 변화\n· 묽은 염산: 푸른색 → 붉은색\n· 식초: 푸른색 → 붉은색\n· 레몬즙: 푸른색 → 붉은색",
+    text:"탄산 칼슘과 반응시키면 수소 기체가 발생한다." },
+  { id:"s2_c1_4", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"묽은 염산, 식초, 레몬즙에 대한 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 물질에 리트머스 종이를 대었을 때의 색 변화\n· 묽은 염산: 푸른색 → 붉은색\n· 식초: 푸른색 → 붉은색\n· 레몬즙: 푸른색 → 붉은색",
+    text:"BTB 용액을 떨어뜨리면 용액의 색이 노란색으로 변한다." },
+  { id:"s2_c1_5", page:26, type:"choice", options:["O","X"], correctAnswer:"X", tag:"깨알 개념 체크 문제",
+    guideText:"묽은 염산, 식초, 레몬즙에 대한 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 물질에 리트머스 종이를 대었을 때의 색 변화\n· 묽은 염산: 푸른색 → 붉은색\n· 식초: 푸른색 → 붉은색\n· 레몬즙: 푸른색 → 붉은색",
+    text:"두부(단백질)를 녹이는 성질이 있다." },
 
-  { id:"s2_c3_A", type:"blank", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 페놀프탈레인 용액에 수용액 A를 떨어뜨렸더니 붉은색이 되었다. A의 액성을 쓰시오.",
-    note:"산성 / 중성 / 염기성 중 하나로 쓰세요.", correctAnswer:"염기성" },
-  { id:"s2_c3_B", type:"blank", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 BTB 용액에 수용액 B를 떨어뜨렸더니 초록색이 되었다. B의 액성을 쓰시오.",
-    note:"산성 / 중성 / 염기성 중 하나로 쓰세요.", correctAnswer:"중성" },
-  { id:"s2_c3_C", type:"blank", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 메틸 오렌지 용액에 수용액 C를 떨어뜨렸더니 붉은색이 되었다. C의 액성을 쓰시오.",
-    note:"산성 / 중성 / 염기성 중 하나로 쓰세요.", correctAnswer:"산성" },
+  /* ── 깨알 개념 체크 문제 2 (26쪽) — NaOH·NH₃·Mg(OH)₂ 수용액 공통 ── */
+  { id:"s2_c2_1", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"NaOH(수산화 나트륨), NH₃(암모니아), Mg(OH)₂(수산화 마그네슘) 수용액에 대한 공통적인 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 수용액\n· NaOH(수산화 나트륨) 수용액\n· NH₃(암모니아) 수용액\n· Mg(OH)₂(수산화 마그네슘) 수용액",
+    text:"전기 전도성이 있다." },
+  { id:"s2_c2_2", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"NaOH(수산화 나트륨), NH₃(암모니아), Mg(OH)₂(수산화 마그네슘) 수용액에 대한 공통적인 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 수용액\n· NaOH(수산화 나트륨) 수용액\n· NH₃(암모니아) 수용액\n· Mg(OH)₂(수산화 마그네슘) 수용액",
+    text:"페놀프탈레인 용액을 떨어뜨리면 붉은색으로 변한다." },
+  { id:"s2_c2_3", page:26, type:"choice", options:["O","X"], correctAnswer:"X", tag:"깨알 개념 체크 문제",
+    guideText:"NaOH(수산화 나트륨), NH₃(암모니아), Mg(OH)₂(수산화 마그네슘) 수용액에 대한 공통적인 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 수용액\n· NaOH(수산화 나트륨) 수용액\n· NH₃(암모니아) 수용액\n· Mg(OH)₂(수산화 마그네슘) 수용액",
+    text:"금속 또는 달걀 껍데기와 반응하면 기체가 발생한다." },
+  { id:"s2_c2_4", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"NaOH(수산화 나트륨), NH₃(암모니아), Mg(OH)₂(수산화 마그네슘) 수용액에 대한 공통적인 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 수용액\n· NaOH(수산화 나트륨) 수용액\n· NH₃(암모니아) 수용액\n· Mg(OH)₂(수산화 마그네슘) 수용액",
+    text:"같은 온도에서 탄산음료보다 pH가 더 크다." },
+  { id:"s2_c2_5", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"NaOH(수산화 나트륨), NH₃(암모니아), Mg(OH)₂(수산화 마그네슘) 수용액에 대한 공통적인 설명이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    note:"[자료] 세 가지 수용액\n· NaOH(수산화 나트륨) 수용액\n· NH₃(암모니아) 수용액\n· Mg(OH)₂(수산화 마그네슘) 수용액",
+    text:"주변의 물질 중 공통된 성질을 띠는 것으로 비눗물, 하수구 세정제 등이 있다." },
 
-  { id:"s2_c4_1", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 (가) 묽은 염산, (나) 수산화 나트륨 수용액의 이온화 모형이다. — (가)와 (나)는 모두 전기 전도성이 있다.",
-    note:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액이다. 옳으면 O, 옳지 않으면 X.",
-    image:"images/q-acidbase-check4-ionization.png",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c4_2", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 (가) 묽은 염산, (나) 수산화 나트륨 수용액의 이온화 모형이다. — (가)는 푸른색 리트머스 종이의 색을 붉게 만든다.",
-    note:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액이다. 옳으면 O, 옳지 않으면 X.",
-    image:"images/q-acidbase-check4-ionization.png",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c4_3", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 (가) 묽은 염산, (나) 수산화 나트륨 수용액의 이온화 모형이다. — (가)에 탄산 칼슘 조각을 넣으면 이산화 탄소 기체가 발생한다.",
-    note:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액이다. 옳으면 O, 옳지 않으면 X.",
-    image:"images/q-acidbase-check4-ionization.png",
-    options:["O","X"], correctAnswer:"O" },
-  { id:"s2_c4_4", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 (가) 묽은 염산, (나) 수산화 나트륨 수용액의 이온화 모형이다. — (나)에 마그네슘 조각을 넣으면 수소 기체가 발생한다.",
-    note:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액이다. 옳으면 O, 옳지 않으면 X.",
-    image:"images/q-acidbase-check4-ionization.png",
-    options:["O","X"], correctAnswer:"X" },
-  { id:"s2_c4_5", type:"choice", tag:"깨알 개념 체크 문제", page:26,
-    text:"〈산과 염기〉 (가) 묽은 염산, (나) 수산화 나트륨 수용액의 이온화 모형이다. — (나)는 단백질을 녹일 수 있다.",
-    note:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액이다. 옳으면 O, 옳지 않으면 X.",
-    image:"images/q-acidbase-check4-ionization.png",
-    options:["O","X"], correctAnswer:"O" },
+  /* ── 깨알 개념 체크 문제 3 (26쪽) — 지시약 색 변화로 액성 판단 ── */
+  { id:"s2_c3_A", page:26, type:"blank", correctAnswer:"염기성", tag:"깨알 개념 체크 문제",
+    guideText:"지시약을 떨어뜨렸을 때의 색을 보고 수용액의 액성을 쓰시오. (산성 / 중성 / 염기성)",
+    note:"페놀프탈레인 용액에 수용액 A를 떨어뜨렸더니 붉은색이 되었다.",
+    text:"수용액 A의 액성을 쓰시오." },
+  { id:"s2_c3_B", page:26, type:"blank", correctAnswer:"중성", tag:"깨알 개념 체크 문제",
+    guideText:"지시약을 떨어뜨렸을 때의 색을 보고 수용액의 액성을 쓰시오. (산성 / 중성 / 염기성)",
+    note:"BTB 용액에 수용액 B를 떨어뜨렸더니 초록색이 되었다.",
+    text:"수용액 B의 액성을 쓰시오." },
+  { id:"s2_c3_C", page:26, type:"blank", correctAnswer:"산성", tag:"깨알 개념 체크 문제",
+    guideText:"지시약을 떨어뜨렸을 때의 색을 보고 수용액의 액성을 쓰시오. (산성 / 중성 / 염기성)",
+    note:"메틸 오렌지 용액에 수용액 C를 떨어뜨렸더니 붉은색이 되었다.",
+    text:"수용액 C의 액성을 쓰시오." },
 
-  { id:"s2_confirm1_1", type:"blank", tag:"확인문제 1", page:27,
-    text:"〈산과 염기〉 BTB 용액을 노란색으로 변하게 한다. — 산성이면 '산', 염기성이면 '염'이라고 쓰시오.",
-    correctAnswer:"산" },
-  { id:"s2_confirm1_2", type:"blank", tag:"확인문제 1", page:27,
-    text:"〈산과 염기〉 페놀프탈레인 용액을 붉은색으로 변하게 한다. — 산성이면 '산', 염기성이면 '염'이라고 쓰시오.",
-    correctAnswer:"염" },
-  { id:"s2_confirm1_3", type:"blank", tag:"확인문제 1", page:27,
-    text:"〈산과 염기〉 붉은색 리트머스 종이를 푸른색으로 변하게 한다. — 산성이면 '산', 염기성이면 '염'이라고 쓰시오.",
-    correctAnswer:"염" },
-  { id:"s2_confirm1_4", type:"blank", tag:"확인문제 1", page:27,
-    text:"〈산과 염기〉 단백질을 녹이는 성질이 있어서 만지면 미끈거린다. — 산성이면 '산', 염기성이면 '염'이라고 쓰시오.",
-    correctAnswer:"염" },
-  { id:"s2_confirm1_5", type:"blank", tag:"확인문제 1", page:27,
-    text:"〈산과 염기〉 탄산 칼슘과 반응하여 이산화 탄소 기체를 발생시킨다. — 산성이면 '산', 염기성이면 '염'이라고 쓰시오.",
-    correctAnswer:"산" },
+  /* ── 깨알 개념 체크 문제 4 (26쪽) — 이온화 모형 ── */
+  { id:"s2_c4_1", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액의 이온화 모형이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    text:"(가)와 (나)는 모두 전기 전도성이 있다.",
+    image:"images/q-acidbase-check4-ionization.png" },
+  { id:"s2_c4_2", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액의 이온화 모형이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    text:"(가)는 푸른색 리트머스 종이의 색을 붉게 만든다.",
+    image:"images/q-acidbase-check4-ionization.png" },
+  { id:"s2_c4_3", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액의 이온화 모형이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    text:"(가)에 탄산 칼슘 조각을 넣으면 이산화 탄소 기체가 발생한다.",
+    image:"images/q-acidbase-check4-ionization.png" },
+  { id:"s2_c4_4", page:26, type:"choice", options:["O","X"], correctAnswer:"X", tag:"깨알 개념 체크 문제",
+    guideText:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액의 이온화 모형이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    text:"(나)에 마그네슘 조각을 넣으면 수소 기체가 발생한다.",
+    image:"images/q-acidbase-check4-ionization.png" },
+  { id:"s2_c4_5", page:26, type:"choice", options:["O","X"], correctAnswer:"O", tag:"깨알 개념 체크 문제",
+    guideText:"그림의 (가)는 묽은 염산, (나)는 수산화 나트륨 수용액의 이온화 모형이다.\n이에 대한 설명으로 옳으면 O, 옳지 않으면 X를 고르세요.",
+    text:"(나)는 단백질을 녹일 수 있다.",
+    image:"images/q-acidbase-check4-ionization.png" },
 
-  { id:"s2_confirm2", type:"choice", tag:"확인문제 2", page:27,
-    text:"〈산과 염기〉 3개의 비커에 식초, 제빵 소다 수용액, 염화 나트륨 수용액이 각각 들어 있다. 이 3가지 수용액을 구분할 수 있는 방법으로 적절한 것만을 〈보기〉에서 있는 대로 고른 것은?",
-    note:"〈보기〉\nㄱ. BTB 용액을 떨어뜨린다.\nㄴ. 페놀프탈레인 용액을 떨어뜨린다.\nㄷ. 간이 전기 전도성 측정기를 넣어 전류가 흐르는지 확인한다.\n\n① ㄱ   ② ㄴ   ③ ㄱ, ㄷ   ④ ㄴ, ㄷ   ⑤ ㄱ, ㄴ, ㄷ",
-    options:["①","②","③","④","⑤"], correctAnswer:"①" },
+  /* ── 확인문제 1 (27쪽) — 산성이면 '산', 염기성이면 '염' ── */
+  { id:"s2_confirm1_1", page:27, type:"blank", correctAnswer:"산", tag:"확인문제",
+    guideText:"다음 설명이 산성에 대한 것이면 '산', 염기성에 대한 것이면 '염'이라고 쓰시오.",
+    note:"BTB 용액을 노란색으로 변하게 한다.",
+    text:"이 설명은 '산'과 '염' 중 무엇에 해당하는가?" },
+  { id:"s2_confirm1_2", page:27, type:"blank", correctAnswer:"염", tag:"확인문제",
+    guideText:"다음 설명이 산성에 대한 것이면 '산', 염기성에 대한 것이면 '염'이라고 쓰시오.",
+    note:"페놀프탈레인 용액을 붉은색으로 변하게 한다.",
+    text:"이 설명은 '산'과 '염' 중 무엇에 해당하는가?" },
+  { id:"s2_confirm1_3", page:27, type:"blank", correctAnswer:"염", tag:"확인문제",
+    guideText:"다음 설명이 산성에 대한 것이면 '산', 염기성에 대한 것이면 '염'이라고 쓰시오.",
+    note:"붉은색 리트머스 종이를 푸른색으로 변하게 한다.",
+    text:"이 설명은 '산'과 '염' 중 무엇에 해당하는가?" },
+  { id:"s2_confirm1_4", page:27, type:"blank", correctAnswer:"염", tag:"확인문제",
+    guideText:"다음 설명이 산성에 대한 것이면 '산', 염기성에 대한 것이면 '염'이라고 쓰시오.",
+    note:"단백질을 녹이는 성질이 있어서 만지면 미끈거린다.",
+    text:"이 설명은 '산'과 '염' 중 무엇에 해당하는가?" },
+  { id:"s2_confirm1_5", page:27, type:"blank", correctAnswer:"산", tag:"확인문제",
+    guideText:"다음 설명이 산성에 대한 것이면 '산', 염기성에 대한 것이면 '염'이라고 쓰시오.",
+    note:"탄산 칼슘과 반응하여 이산화 탄소 기체를 발생시킨다.",
+    text:"이 설명은 '산'과 '염' 중 무엇에 해당하는가?" },
 
-  { id:"s2_past1", type:"choice", tag:"기출문제", page:27,
-    text:"〈산과 염기〉 산과 염기의 성질에 대한 설명으로 옳지 않은 것은? (선택지는 아래 그림 참고)",
-    image:"images/q-acidbase-past-1.png", imageSize:"small",
-    options:["①","②","③","④","⑤"], correctAnswer:"⑤" },
-  { id:"s2_past2", type:"choice", tag:"기출문제", page:27,
-    text:"〈산과 염기〉 그림은 묽은 염산을 모형으로 나타낸 것이다. 이에 대한 설명으로 옳지 않은 것은? (자료·선택지는 아래 그림 참고)",
-    image:"images/q-acidbase-past-2.png", imageSize:"small",
-    options:["①","②","③","④","⑤"], correctAnswer:"④" },
+  /* ── 확인문제 2 (27쪽) ── */
+  { id:"s2_confirm2", page:27, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"①", tag:"확인문제",
+    text:"3개의 비커에 식초, 제빵 소다 수용액, 염화 나트륨 수용액이 각각 들어 있다. 이 3가지 수용액을 구분할 수 있는 방법으로 적절한 것만을 <보기>에서 있는 대로 고른 것은?",
+    note:"<보기>\nㄱ. BTB 용액을 떨어뜨린다.\nㄴ. 페놀프탈레인 용액을 떨어뜨린다.\nㄷ. 간이 전기 전도성 측정기를 넣어 전류가 흐르는지 확인한다.\n\n① ㄱ   ② ㄴ   ③ ㄱ, ㄷ   ④ ㄴ, ㄷ   ⑤ ㄱ, ㄴ, ㄷ" },
+
+  /* ── 기출 문제 (27쪽) — 문제·선택지는 이미지 안에 있음 ── */
+  { id:"s2_past1", page:27, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"⑤", tag:"기출 문제",
+    text:"학력평가 기출",
+    image:"images/q-acidbase-past-1.png", imageSize:"small" },
+  { id:"s2_past2", page:27, type:"choice", options:["①","②","③","④","⑤"], correctAnswer:"④", tag:"기출 문제",
+    text:"학력평가 기출",
+    image:"images/q-acidbase-past-2.png", imageSize:"small" },
 ];
 
 const REFLECT_QUESTIONS = [
@@ -1110,7 +1128,11 @@ const TEACHER_ITEMS = QUESTIONS.concat(REFLECT_QUESTIONS.map((text, i)=>({
      따로 기존 레이아웃을 쓰는 불일치를 막는다).
 */
 const SPLIT_TAG_SET = (function(){
-  const forced = new Set(["깨알 개념 체크 문제"]);
+  // tag 문자열을 미리 강제하지 않고, 아래 byTag 루프의 내용 기반 판정(반응식 나열
+  // note가 있는지)에만 맡긴다 — "깨알 개념 체크 문제" tag를 마그네슘 계열(q9~13, note
+  // 없이 image만 있음)도 함께 쓰게 되면서, tag 이름만으로 강제하면 반응식 나열이 없는
+  // 마그네슘 문항까지 잘못 분할 레이아웃으로 끌려가기 때문이다.
+  const forced = new Set();
   const byTag = new Map();
   QUESTIONS.forEach(q=>{
     if(!q.tag) return;
@@ -1121,7 +1143,12 @@ const SPLIT_TAG_SET = (function(){
     // 기존 판정 기준(note와 image가 함께 있으면 분할)을 tag 단위로 넓혀서, 같은 tag
     // 안의 문항 하나라도 이 조건을 만족하면 tag 전체를 분할 레이아웃으로 통일한다.
     // (image만 있고 note가 없는 "확인문제"/"기출문제" 같은 tag는 그대로 기존 레이아웃 유지)
-    if(list.some(item => item.image && item.note)) forced.add(tag);
+    // "깨알 개념 체크 문제"라는 tag 문자열 자체가 아니라, note에 (가)(나)(다)(라) 식
+    // 반응식 나열(참고자료 역할)이 있으면 tag 이름과 무관하게 분할 레이아웃으로 통일한다
+    // — 활동마다 이 계열 문항의 tag 이름이 "깨알 개념 체크 문제"/"스스로 확인하기"처럼
+    // 다를 수 있기 때문(문항 데이터는 그대로 두고 판정 로직만 내용 기반으로 일반화).
+    const hasReactionListNote = item => item.note && /\(가\)|\(나\)|\(다\)|\(라\)/.test(item.note);
+    if(list.some(item => (item.image && item.note) || hasReactionListNote(item))) forced.add(tag);
   });
   return forced;
 })();
@@ -1226,7 +1253,7 @@ function renderTagBadge(el, tag){
     el.classList.add("tag-reflect"); el.textContent = "성찰 질문";
   } else if(tag && tag.indexOf("확인문제") === 0){
     el.classList.add("tag-confirm"); el.textContent = "확인 문제";
-  } else if(tag && tag.indexOf("기출문제") === 0){
+  } else if((tag && tag.indexOf("기출문제") === 0) || tag === "기출 문제"){
     el.classList.add("tag-pill","tag-pastexam"); el.textContent = "기출 문제";
   } else if(tag === "수능대비문제"){
     el.classList.add("tag-pill","tag-suneung"); el.textContent = "수능대비문제";
@@ -1251,6 +1278,8 @@ function renderQuestion(){
   renderTagBadge(document.getElementById("q-tag"), q.tag);
   renderPageLabel(document.getElementById("q-page"), q.page);
   document.getElementById("q-num").textContent = (state.current+1)+" / "+QUESTIONS.length;
+  const qGuideEl = document.getElementById("q-guide");
+  if(q.guideText){ qGuideEl.textContent = q.guideText; qGuideEl.classList.remove("hidden"); } else qGuideEl.classList.add("hidden");
   document.getElementById("q-text").textContent = q.text;
 
   const noteEl = document.getElementById("q-note");
@@ -1932,6 +1961,9 @@ function renderTeacherQuestionView(showReveal){
     noteEl.classList.add("hidden");
     noteBlocksEl.innerHTML = buildNoteBlocksHtml(q.note);
     noteBlocksEl.classList.remove("hidden");
+    // (가)(나)(다)(라) 화학 반응식 나열(스스로 확인하기)은 다른 확인문제 note보다
+    // 더 크게/여유 있게 — 반응식 표기 여부로 판정(문항 데이터 수정 없이 판정만).
+    noteBlocksEl.classList.toggle("tq-note-blocks-chem", /\(가\)|\(나\)|\(다\)|\(라\)/.test(q.note || ""));
   } else {
     noteBlocksEl.classList.add("hidden");
     noteBlocksEl.innerHTML = "";
